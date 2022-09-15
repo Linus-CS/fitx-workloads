@@ -1,5 +1,5 @@
 FROM rust:1.31
-COPY ./target/release/rust-fitx /app/
+COPY ./target/release/fitx-workload /app/
 WORKDIR /app/
 
-CMD ./rust-fitx 
+CMD ./fitx-workload
