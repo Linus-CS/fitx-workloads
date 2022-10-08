@@ -1,7 +1,7 @@
 ---
 version: "3.6"
 services:
-  postgresql:
+  db:
     image: postgres:11.3
     container_name: postgres
     volumes:
@@ -9,10 +9,9 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_USER=postgress
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=fitx
     ports: ["5432:5432"]
-    networks: ["stack"]
+    networks: ["db-network"]
     healthcheck:
       test: curl -s https://localhost:5432 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
       interval: 30s
@@ -21,10 +20,11 @@ services:
   adminer:
     image: adminer
     restart: always
+    networks: ["db-network"]
     ports:
       - 8080:8080
 
 volumes:
   fitx-data:
 networks:
-  stack:
+  db-network:
