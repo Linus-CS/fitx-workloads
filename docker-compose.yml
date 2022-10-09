@@ -22,7 +22,7 @@ services:
     restart: always
     networks: ["db-network"]
     ports:
-      - 8080:8080
+      - 80:8080
   workload:
     container_name: workload
     build:
