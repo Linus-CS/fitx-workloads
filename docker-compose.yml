@@ -1,15 +1,6 @@
 ---
 version: "3.6"
 services:
-  workload:
-    container_name: workload
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - 3000:3000
-    networks: ["db-network"]
   db:
     image: postgres:11.3
     container_name: postgres
@@ -32,6 +23,15 @@ services:
     networks: ["db-network"]
     ports:
       - 8080:8080
+  workload:
+    container_name: workload
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    networks: ["db-network"]
 
 volumes:
   fitx-data:
