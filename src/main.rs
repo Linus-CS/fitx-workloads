@@ -7,7 +7,9 @@ use tokio_postgres::{Client, NoTls};
 
 #[tokio::main]
 async fn main() {
-    let db_password = option_env!("POSTGRES_PASSWORD").expect("Not available.");
+    let db_password =
+        option_env!("POSTGRES_PASSWORD").expect("Env var POSTGRES_PASSWORD is not available.");
+
     let (client, connection) = tokio_postgres::connect(
         &format!("postgresql://postgress:{db_password}@db:5432/fitx"),
         NoTls,
@@ -31,9 +33,7 @@ async fn main() {
     let ids: Vec<i32> = locations.iter().map(|row| row.get(0)).collect();
     loop {
         let before = chrono::offset::Local::now().time();
-        println!("Wait: {} secs.", 60 - before.second());
         thread::sleep(time::Duration::from_secs((60 - before.second()) as u64));
-        println!("Begin!");
         let after = chrono::offset::Local::now().time();
         let time_id = (after.hour() * 60 + after.minute() + 1) as i32;
         if today != chrono::offset::Local::now().date_naive() {
@@ -58,7 +58,13 @@ async fn retrieve_and_insert(ids: &Vec<i32>, time_id: &i32, date_id: &i32, clien
         ));
     }
     query.remove(query.len() - 1);
-    client.execute(&query, &[]).await.unwrap();
+
+    match client.execute(&query, &[]).await {
+        Err(e) => {
+            println!("Failed to insert percentages at {time_id} {date_id} with error: {e}")
+        }
+        _ => {}
+    }
 }
 
 async fn collect_percentages(ids: &Vec<i32>) -> Vec<(i32, i32)> {
@@ -106,22 +112,18 @@ async fn request_percentage(city_code: i32) -> (i32, i32) {
 
 fn parse_for(text: &String, key: &str) -> String {
     let split: Vec<&str> = text.split(key).collect();
-    if split.get(0).unwrap().len() > 1 {
-        let first: Vec<&str> = split.get(1).unwrap().split(",").collect();
-        let second: Vec<&str> = first.get(0).unwrap().split(":").collect();
-        let value = second.get(1).unwrap();
-        return value.to_string();
-    }
-    return "".to_string();
-}
+    let check = match split.get(1) {
+        Some(value) => value.len() > 1,
+        _ => false,
+    };
 
-fn prettify(text: String) -> String {
-    let s = text.replace("u00df", "ß");
-    let s = s.replace("u00fc", "ü");
-    let s = s.replace("u00dc", "Ü");
-    let s = s.replace("u00f6", "ö");
-    let s = s.replace("u00e4", "ä");
-    let s = s.replace("\\", "");
-    let s = s.replace("\"", "");
-    return s;
+    if !check {
+        println!("Failed to parse for key {key} in: {text}");
+        return "0".to_owned();
+    }
+
+    let first: Vec<&str> = split.get(1).unwrap().split(",").collect();
+    let second: Vec<&str> = first.get(0).unwrap().split(":").collect();
+    let value = second.get(1).unwrap();
+    return value.to_string();
 }
