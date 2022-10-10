@@ -7,7 +7,7 @@ use tokio_postgres::{Client, NoTls};
 
 #[tokio::main]
 async fn main() {
-    let db_password = "VsPmbLmisfs42";
+    let db_password = option_env!("POSTGRES_PASSWORD").expect("Not available.");
     let (client, connection) = tokio_postgres::connect(
         &format!("postgresql://postgress:{db_password}@db:5432/fitx"),
         NoTls,
