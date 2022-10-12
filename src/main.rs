@@ -1,5 +1,6 @@
 use chrono::Timelike;
 use core::time;
+use std::env;
 use std::{str::FromStr, thread};
 
 use futures::future::join_all;
@@ -8,7 +9,7 @@ use tokio_postgres::{Client, NoTls};
 #[tokio::main]
 async fn main() {
     let db_password =
-        option_env!("POSTGRES_PASSWORD").expect("Env var POSTGRES_PASSWORD is not available.");
+        env::var("POSTGRES_PASSWORD").expect("Env var POSTGRES_PASSWORD is not available.");
 
     let (client, connection) = tokio_postgres::connect(
         &format!("postgresql://postgress:{db_password}@db:5432/fitx"),
