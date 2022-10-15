@@ -1,0 +1,3 @@
+Change all entries with id before 888282 to time_id + 120
+
+And change all dates with time_id >= 1321 to 1480 - time_id and date_id + 1
