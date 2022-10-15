@@ -31,13 +31,23 @@ async fn main() {
         .await
         .unwrap();
 
+    let time_zone = chrono_tz::Tz::from_str("Europe/Berlin").unwrap();
+
     let ids: Vec<i32> = locations.iter().map(|row| row.get(0)).collect();
     loop {
-        let before = chrono::offset::Local::now().time();
+        let before = chrono::offset::Local::now()
+            .with_timezone(&time_zone)
+            .time();
         thread::sleep(time::Duration::from_secs((60 - before.second()) as u64));
-        let after = chrono::offset::Local::now().time();
+        let after = chrono::offset::Local::now()
+            .with_timezone(&time_zone)
+            .time();
         let time_id = (after.hour() * 60 + after.minute() + 1) as i32;
-        if today != chrono::offset::Local::now().date_naive() {
+        if today
+            != chrono::offset::Local::now()
+                .with_timezone(&time_zone)
+                .date_naive()
+        {
             (today, date_id) = correct_date(&client).await;
         }
 
@@ -78,7 +88,11 @@ async fn collect_percentages(ids: &Vec<i32>) -> Vec<(i32, i32)> {
 }
 
 async fn correct_date(client: &Client) -> (chrono::NaiveDate, i32) {
-    let today = chrono::offset::Local::now().date_naive();
+    let time_zone = chrono_tz::Tz::from_str("Europe/Berlin").unwrap();
+
+    let today = chrono::offset::Local::now()
+        .with_timezone(&time_zone)
+        .date_naive();
     let db_today = client
         .query("SELECT date FROM date WHERE date = $1::DATE", &[&today])
         .await
